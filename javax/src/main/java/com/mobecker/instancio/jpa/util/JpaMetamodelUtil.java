@@ -40,6 +40,18 @@ import javax.persistence.metamodel.SingularAttribute;
  */
 public final class JpaMetamodelUtil {
 
+    private static final Class<?> HIBERNATE_TENANT_ID_ANNOTATION;
+
+    static {
+        Class<?> tenantIdAnnotation;
+        try {
+            tenantIdAnnotation = Class.forName("org.hibernate.annotations.TenantId");
+        } catch (ClassNotFoundException e) {
+            tenantIdAnnotation = null;
+        }
+        HIBERNATE_TENANT_ID_ANNOTATION = tenantIdAnnotation;
+    }
+
     private JpaMetamodelUtil() { }
 
     /**
@@ -212,10 +224,25 @@ public final class JpaMetamodelUtil {
     }
 
     /**
+     * Checks if a JPA attribute represents a tenant id as defined by Hibernate 6 multi-tenancy.
+     *
+     * @param attribute the JPA attribute to check.
+     * @return true if the attribute is a tenant id, else false.
+     *
+     * @since 1.1.0
+     */
+    public static boolean isHibernateTenantId(Attribute<?, ?> attribute) {
+        return HIBERNATE_TENANT_ID_ANNOTATION
+            != null && getAnnotation(attribute, (Class) HIBERNATE_TENANT_ID_ANNOTATION) != null;
+    }
+
+    /**
      * Checks if a JPA attribute is insertable according to its mapping annotations.
      *
      * @param attribute the JPA attribute to check.
      * @return true if the attribute is insertable, else false.
+     *
+     * @since 1.1.0
      */
     public static boolean isInsertable(Attribute<?, ?> attribute) {
         Column column = getAnnotation(attribute, Column.class);
